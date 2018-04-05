@@ -3,13 +3,12 @@
 #define __CAVALIA_DATABASE_CUCKOO_INDEX_H__
 
 #include <libcuckoo/cuckoohash_map.hh>
-#include <libcuckoo/city_hasher.hh>
 #include "BaseUnorderedIndex.h"
 
 namespace Cavalia{
 	namespace Database {
 		class CuckooIndex : public BaseUnorderedIndex{
-			typedef cuckoohash_map<std::string, TableRecord*, CityHasher<std::string>> CuckooMap;
+			typedef cuckoohash_map<std::string, TableRecord*, std::hash<std::string>> CuckooMap;
 		public:
 			CuckooIndex(){}
 			virtual ~CuckooIndex(){}

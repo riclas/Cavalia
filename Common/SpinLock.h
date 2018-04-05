@@ -24,6 +24,10 @@ struct SpinLock{
 		pthread_spin_unlock(&spinlock_);
 	}
 
+	inline bool IsLocked() const{
+                return *((volatile int*)(&spinlock_)) != 0;
+        }
+
 private:
 	pthread_spinlock_t spinlock_;
 };
