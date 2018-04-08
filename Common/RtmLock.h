@@ -6,6 +6,7 @@
 #include <cstring>
 #include <atomic>
 #include <iostream>
+#include <SpinLock.h>
 
 struct RtmLock{
 	RtmLock(const size_t max_conflict_retries = 100, const size_t max_capacity_retries = 10){
@@ -33,15 +34,18 @@ struct RtmLock{
 		unsigned status;
 		int capacity_abort_num = 0;
 		for (size_t i = 0; i < max_conflict_retries_; ++i){
+/*			while (spinlock_.IsLocked() == true){
+                                _mm_pause();
+                        }*/
 			status = _xbegin();
 			if (status == _XBEGIN_STARTED){
-				if (spinlock_.v_ == 0){
+				if (spinlock_.IsLocked() == false){
 					return;
 				}
 				_xabort(0xff);
 			}
 			if ((status & _XABORT_EXPLICIT) && _XABORT_CODE(status) == 0xff && !(status & _XABORT_NESTED)){
-				while (spinlock_.v_ == 1){
+				while (spinlock_.IsLocked() == true){
 					_mm_pause();
 				}
 			}
@@ -76,12 +80,12 @@ struct RtmLock{
 			++explicit_count_;
 		}
 #endif
-		spinlock_.lock();
+		spinlock_.Lock();
 	}
 
 	inline void Unlock(){
-		if (spinlock_.v_ == 1){
-			spinlock_.unlock();
+		if (spinlock_.IsLocked() == true){
+			spinlock_.Unlock();
 		}
 		else{
 			_xend();
@@ -100,7 +104,7 @@ struct RtmLock{
 			retry_count_ * 1.0 / total_count_,
 			debug_count_ * 1.0 / total_count_
 			);
-#endif	
+#endif
 	}
 #if defined(PROFILE_HTM)
 	std::atomic<size_t> fallback_count_;

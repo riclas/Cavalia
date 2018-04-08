@@ -49,6 +49,10 @@ struct SpinLock{
 		spinlock_ = 0;
 	}
 
+	inline bool IsLocked(){
+		return spinlock_ == 1;
+	}
+
 private:
 	volatile bool spinlock_;
 };
@@ -67,8 +71,8 @@ struct SpinLock{
 		spinlock_.unlock();
 	}
 
-	inline bool IsLocked() const{
-		return spinlock_.v_ == true;
+	inline bool IsLocked(){
+		return spinlock_.v_ == 1;
 	}
 
 private:
