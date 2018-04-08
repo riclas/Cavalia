@@ -32,6 +32,8 @@ Our project aims at faithfully implementing all kinds of concurrency-control and
 * SILO: an implementation following silo's design [TZK+13].
 * DBX: an implementation following DBX's design [WQLC14].
 * ST: disable concurrency control. must be turned on when performing log replay [MWMS14, ZTKL14].
+* HTM: basic HTM locking implementation
+* LOCK_HTM: ?
 
 ### Index
 * CUCKOO_INDEX: enable cuckoo index (See https://github.com/efficient/libcuckoo).
@@ -59,8 +61,9 @@ Our project aims at faithfully implementing all kinds of concurrency-control and
 * PROFILE_CC_EXECUTION_COUNT: measure statistics of the current concurrency control algorithm.
 
 ### Hardware architecture
-* PTHREAD_LOCK: use pthread_spin_lock.
-* BUILTIN_LOCK: use __sync_lock_test_and_set.
+* default spinlock is bugged
+* PTHREAD_LOCK: use pthread_spin_lock (works only on IBM)
+* BUILTIN_LOCK: use __sync_lock_test_and_set
 
 ## Notes
 * please turn off all the cc-related options when testing transaction replays.
