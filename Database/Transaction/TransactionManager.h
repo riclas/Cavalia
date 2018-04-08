@@ -18,8 +18,12 @@
 #include "GlobalTimestamp.h"
 #include "BatchTimestamp.h"
 #include "Epoch.h"
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(__x86_64__)
 #include <RtmLock.h>
+#elif defined(__PPC__)
+#include <IBMLock.h>
+#endif
 #endif
 
 namespace Cavalia{
@@ -46,9 +50,13 @@ namespace Cavalia{
 			// destruction.
 			virtual ~TransactionManager(){}
 
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
-			void SetRtmLock(RtmLock *rtm_lock){
-				rtm_lock_ = rtm_lock;
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(__x86_64__)
+			void SetHtmLock(RtmLock *htm_lock){
+#elif defined(__PPC__)
+			void SetHtmLock(IBMLock *htm_lock){
+#endif
+				htm_lock_ = htm_lock;
 			}
 #endif
 
@@ -231,10 +239,14 @@ namespace Cavalia{
 #if defined(MVTO) || defined(MVLOCK) || defined(MVLOCK_WAIT) || defined(MVOCC)
 			std::vector<SchemaRecord*> read_only_set_;
 #endif
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
-			RtmLock *rtm_lock_;
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(__x86_64__)
+			RtmLock *htm_lock_;
+#elif defined(__PPC__)
+			IBMLock *htm_lock_;
+#endif
 			std::list<std::pair<TableRecord*, SchemaRecord*>> garbage_set_;
-#if defined(OCC_RTM) || defined(LOCK_RTM)
+#if defined(OCC_HTM) || defined(LOCK_HTM)
 			AccessList<kMaxAccessNum> hot_access_list_;
 #endif
 #endif

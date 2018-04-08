@@ -1,9 +1,8 @@
 #pragma once
-#ifndef __COMMON_RTM_LOCK_H__
-#define __COMMON_RTM_LOCK_H__
+#ifndef __COMMON_HTM_LOCK_H__
+#define __COMMON_HTM_LOCK_H__
 
 #include <immintrin.h>
-#include <boost/smart_ptr/detail/spinlock.hpp>
 #include <cstring>
 #include <atomic>
 #include <iostream>
@@ -13,7 +12,7 @@ struct RtmLock{
 		memset(&spinlock_, 0, sizeof(spinlock_));
 		max_conflict_retries_ = max_conflict_retries;
 		max_capacity_retries_ = max_capacity_retries;
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 		fallback_count_ = 0;
 		total_count_ = 0;
 		conflict_count_ = 0;
@@ -25,10 +24,10 @@ struct RtmLock{
 #endif
 	}
 
-	// PROFILE_RTM collect statistics in the critical path, which will be the bottleneck for performance
-	// should disable PROFILE_RTM when performance is perfered
+	// PROFILE_HTM collect statistics in the critical path, which will be the bottleneck for performance
+	// should disable PROFILE_HTM when performance is perfered
 	inline void Lock(){
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 		++total_count_;
 #endif
 		unsigned status;
@@ -53,13 +52,13 @@ struct RtmLock{
 				}
 			}
 			else if (!(status & _XABORT_RETRY)){
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 				++retry_count_;
 #endif
 				break;
 			}
 		}
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 		++fallback_count_;
 		if(status & _XABORT_CONFLICT){
 			++conflict_count_;
@@ -90,7 +89,7 @@ struct RtmLock{
 	}
 
 	void Print(){
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 		printf("lock count=%d, fallback count=%d, conflict_count=%d, nested_count=%d, capacity_count=%d, explicit_count=%d, retry_count=%d, debug_count=%d\n", int(total_count_), int(fallback_count_), int(conflict_count_), int(nested_count_), int(capacity_count_), int(explicit_count_), int(retry_count_), int(debug_count_));
 		printf("fallback rate=%f, conflict rate=%f, nested rate=%f, capacity rate=%f, explicit rate=%f, retry rate=%f, debug rate=%f\n",
 			fallback_count_ * 1.0 / total_count_,
@@ -103,7 +102,7 @@ struct RtmLock{
 			);
 #endif	
 	}
-#if defined(PROFILE_RTM)
+#if defined(PROFILE_HTM)
 	std::atomic<size_t> fallback_count_;
 	std::atomic<size_t> total_count_;
 	std::atomic<size_t> retry_count_;
@@ -114,7 +113,7 @@ struct RtmLock{
 	std::atomic<size_t> explicit_count_;
 #endif
 private:
-	boost::detail::spinlock spinlock_;
+	SpinLock spinlock_;
 	size_t max_conflict_retries_;
 	size_t max_capacity_retries_;
 };

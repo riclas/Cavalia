@@ -1,4 +1,4 @@
-#if defined(RTM)
+#if defined(HTM)
 #include "TransactionManager.h"
 
 namespace Cavalia {
@@ -82,7 +82,7 @@ namespace Cavalia {
 			bool is_success = true;
 
 			// begin hardware transaction.
-			rtm_lock_->Lock();
+			htm_lock_->Lock();
 			for (size_t i = 0; i < access_list_.access_count_; ++i) {
 				Access *access_ptr = access_list_.GetAccess(i);
 				auto &content_ref = access_ptr->access_record_->content_;
@@ -152,7 +152,7 @@ namespace Cavalia {
 						content_ref.SetTimestamp(commit_ts);
 					}
 				}
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 
 				// commit.
 #if defined(VALUE_LOGGING)
@@ -203,7 +203,7 @@ namespace Cavalia {
 			// if failed.
 			else {
 				// end hardware transaction.
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 				// clean up.
 				for (size_t i = 0; i < access_list_.access_count_; ++i) {
 					Access *access_ptr = access_list_.GetAccess(i);

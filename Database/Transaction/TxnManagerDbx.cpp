@@ -35,10 +35,10 @@ namespace Cavalia{
 				// increment reference counter.
 				t_record->content_.IncrementCounter();
 				// ensure consistent view of timestamp_ and record_
-				rtm_lock_->Lock();
+				htm_lock_->Lock();
 				access->timestamp_ = t_record->content_.GetTimestamp();
 				s_record = t_record->record_;
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 				return true;
 			}
 			else if (access_type == READ_WRITE) {
@@ -50,10 +50,10 @@ namespace Cavalia{
 				t_record->content_.IncrementCounter();
 				// ensure consistent view of timestamp_ and record_
 				SchemaRecord *global_record = NULL;
-				rtm_lock_->Lock();
+				htm_lock_->Lock();
 				access->timestamp_ = t_record->content_.GetTimestamp();
 				global_record = t_record->record_;
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 				// copy data
 				BEGIN_CC_MEM_ALLOC_TIME_MEASURE(thread_id_);
 				const RecordSchema *schema_ptr = global_record->schema_ptr_;
@@ -83,9 +83,9 @@ namespace Cavalia{
 			BEGIN_PHASE_MEASURE(thread_id_, COMMIT_PHASE);
 			// step 1: acquire lock and validate
 			bool is_success = true;
-			
+
 			// begin hardware transaction.
-			rtm_lock_->Lock();
+			htm_lock_->Lock();
 			for (size_t i = 0; i < access_list_.access_count_; ++i) {
 				Access *access_ptr = access_list_.GetAccess(i);
 				if (access_ptr->access_type_ == READ_ONLY) {
@@ -130,7 +130,7 @@ namespace Cavalia{
 					}
 				}
 				// end hardware transaction.
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 
 				// logging, outside rtm region
 
@@ -173,7 +173,7 @@ namespace Cavalia{
 			// if failed.
 			else {
 				// end hardware transaction.
-				rtm_lock_->Unlock();
+				htm_lock_->Unlock();
 				// clean up 
 				for (size_t i = 0; i < access_list_.access_count_; ++i) {
 					Access *access_ptr = access_list_.GetAccess(i);

@@ -21,6 +21,7 @@ public:
 
 	static char* AllocNode(const size_t &size, const size_t &numa_node_id){
 #if defined(NUMA)
+printf("numa\n");
 		return (char*)numa_alloc_onnode(size, numa_node_id);
 #else
 		return (char*)malloc(size);

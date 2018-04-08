@@ -13,8 +13,12 @@
 #include "../Transaction/StoredProcedure.h"
 #include "../Transaction/Epoch.h"
 #include "BaseExecutor.h"
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(__x86_64__)
 #include <RtmLock.h>
+#elif defined(__PPC__)
+#include <IBMLock.h>
+#endif
 #endif
 
 namespace Cavalia{
@@ -78,9 +82,9 @@ namespace Cavalia{
 				double per_core_throughput = throughput / thread_count_;
 				std::cout << "execute_count=" << total_count_ <<", abort_count=" << total_abort_count_ <<", abort_rate=" <<  total_abort_count_*1.0 / (total_count_ + 1) << std::endl;
 				std::cout << "elapsed time=" << elapsed_time << "ms.\nthroughput=" << throughput << "K tps.\nper-core throughput=" << per_core_throughput << "K tps." << std::endl;
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
-#if defined(PROFILE_RTM)
-				rtm_lock_.Print();
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(PROFILE_HTM)
+				htm_lock_.Print();
 #endif
 #endif
 			}
@@ -114,8 +118,8 @@ namespace Cavalia{
 				// prepare local managers.
 				size_t node_id = GetNumaNodeId(core_id);
 				TransactionManager *txn_manager = new TransactionManager(storage_manager_, logger_, thread_id, this->thread_count_);
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
-				txn_manager->SetRtmLock(&rtm_lock_);
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+				txn_manager->SetHtmLock(&htm_lock_);
 #endif
 				StoredProcedure **procedures = new StoredProcedure*[registers_.size()];
 				for (auto &entry : registers_){
@@ -223,7 +227,7 @@ namespace Cavalia{
 				procedures = NULL;*/
 				/////////////////////////////////////////////////
 			}
-			
+
 			size_t GetCoreId(const size_t &thread_id){
 				return thread_id;
 			}
@@ -247,8 +251,12 @@ namespace Cavalia{
 			volatile bool is_finish_;
 			std::atomic<size_t> total_count_;
 			std::atomic<size_t> total_abort_count_;
-#if defined(DBX) || defined(RTM) || defined(OCC_RTM) || defined(LOCK_RTM)
-			RtmLock rtm_lock_;
+#if defined(DBX) || defined(HTM) || defined(OCC_HTM) || defined(LOCK_HTM)
+#if defined(__x86_64__)
+			RtmLock htm_lock_;
+#elif defined(__PPC__)
+			IBMLock htm_lock_;
+#endif
 #endif
 		};
 	}

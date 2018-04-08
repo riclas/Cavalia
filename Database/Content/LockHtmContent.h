@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __CAVALIA_DATABASE_LOCK_RTM_CONTENT_H__
-#define __CAVALIA_DATABASE_LOCK_RTM_CONTENT_H__
+#ifndef __CAVALIA_DATABASE_LOCK_HTM_CONTENT_H__
+#define __CAVALIA_DATABASE_LOCK_HTM_CONTENT_H__
 
 #include <atomic>
 #include <cstdint>
@@ -8,9 +8,9 @@
 
 namespace Cavalia {
 	namespace Database {
-		class LockRtmContent {
+		class LockHtmContent {
 		public:
-			LockRtmContent() : timestamp_(0), counter_(0), is_hot_(false) {}
+			LockHtmContent() : timestamp_(0), counter_(0), is_hot_(false) {}
 
 			bool TryReadLock() {
 				return lock_.TryReadLock();
